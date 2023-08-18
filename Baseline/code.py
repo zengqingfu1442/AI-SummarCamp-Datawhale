@@ -3,6 +3,7 @@ import pandas as pd
 
 # 导入BOW（词袋模型），可以选择将CountVectorizer替换为TfidfVectorizer（TF-IDF（词频-逆文档频率）），注意上下文要同时修改，亲测后者效果更佳
 from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 # 导入LogisticRegression回归模型
 from sklearn.linear_model import LogisticRegression
@@ -12,22 +13,26 @@ from warnings import simplefilter
 from sklearn.exceptions import ConvergenceWarning
 simplefilter("ignore", category=ConvergenceWarning)
 
+
 # 读取数据集
-train = pd.read_csv('./基于论文摘要的文本分类与关键词抽取挑战赛公开数据/train.csv')
+train = pd.read_csv('/home/aistudio/data/data231041/train.csv')
 train['title'] = train['title'].fillna('')
 train['abstract'] = train['abstract'].fillna('')
 
-test = pd.read_csv('./基于论文摘要的文本分类与关键词抽取挑战赛公开数据/testB.csv')
+test = pd.read_csv('/home/aistudio/data/data231041/testB.csv')
 test['title'] = test['title'].fillna('')
 test['abstract'] = test['abstract'].fillna('')
+
 
 # 提取文本特征，生成训练集与测试集
 train['text'] = train['title'].fillna('') + ' ' +  train['author'].fillna('') + ' ' + train['abstract'].fillna('')+ ' ' + train['Keywords'].fillna('')
 test['text'] = test['title'].fillna('') + ' ' +  test['author'].fillna('') + ' ' + test['abstract'].fillna('')
 
-vector = CountVectorizer().fit(train['text'])
+#vector = CountVectorizer().fit(train['text'])
+vector = TfidfVectorizer().fit(train['text'])
 train_vector = vector.transform(train['text'])
 test_vector = vector.transform(test['text'])
+
 
 # 引入模型
 model = LogisticRegression()
@@ -38,6 +43,4 @@ model.fit(train_vector, train['label'])
 # 利用模型对测试集label标签进行预测
 test['label'] = model.predict(test_vector)
 test['Keywords'] = test['title'].fillna('')
-# 生成任务一推测结果
-test[['uuid', 'Keywords', 'label']].to_csv('submit_task1.csv', index=None)
-
+test[['uuid','Keywords','label']].to_csv('submit_task1.csv', index=None)
